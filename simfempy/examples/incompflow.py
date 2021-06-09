@@ -106,15 +106,69 @@ def poiseuille(h= 0.1, mu=0.02):
         for i in range(len(p.lines)): geom.add_physical(p.lines[i], label=f"{1000 + i}")
         mesh = geom.generate_mesh()
     data = ProblemData()
-   # boundary conditions
-    data.bdrycond.set("Dirichlet", [1000, 1003, 1002])
+   # boundary conditions choice :
+
+    # """
+    # %%%%%%%%%%%%%%%%%%%%% Dirichlet %%%%%%%%%%%%%%%%%%    y = \frac{d}{2}
+    # %%%%                                             %
+    #  %%Lambda%       below the solution      %Neumann%    y = 0  
+    # %%%%                                             %
+    # %%%%%%%%%%%%%%%%%%%%% Dirichlet %%%%%%%%%%%%%%%%%%    y = \frac{-d}{2}
+    # xmin---------------------------------------------xmax
+    # """
+    # data.bdrycond.set("Dirichlet", [1000, 1002, 1003])
+    # data.bdrycond.set("Neumann", [1001])
+
+    # #Analytical Poiseuille's Solution
+    # #$\Lambda(x,y,z) = \Lambda(y) = \frac{C}{2\mu}[(\frac{d}{2})^{2} - y^{2}]$
+    # # With $C = constant = \frac{P_{in} - P_{out}}{|xmin-xmax|}$
+
+    # data.bdrycond.fct[1003] = [lambda x, y, z: -y**2 + 0.5,  lambda x, y, z: 0]
+
+# #----------------------------------------------------------------------
+#     """
+#     %%%%%%%%%%%%%%%%%%%%% Dirichlet %%%%%%%%%%%%%%%%%%    y = \frac{d}{2}
+#     %%%%                                             %
+#      %%Lambda%       below the solution      %Neumann%    y = 0  
+#     %%%%                                             %
+#     %%%%%%%%%%%%%%%%%%%%% Navier    %%%%%%%%%%%%%%%%%%    y = \frac{-d}{2}
+#     xmin---------------------------------------------xmax
+#     """
+#     data.bdrycond.set("Dirichlet", [1002, 1003])
+#     data.bdrycond.set("Neumann", [1001])
+#     data.bdrycond.set("Navier", [1000])
+
+#     #navier_slip_boundary
+#     # data.bdrycond.fct[1000] = [lambda x, y, z:  x, lambda x, y, z: 0]
+
+#     #Analytical Poiseuille's Solution
+#     #$\Lambda(x,y,z) = \Lambda(y) = \frac{C}{2\mu}[(\frac{d}{2})^{2} - y^{2}] + \frac{v_{0}(y)}{2}[\frac{d}{2} - y]$
+#     # With $C = constant = \frac{P_{in} - P_{out}}{|xmin-xmax|}$ and $v_{0}(y) = data.bdrycond.fct[1000]$
+
+#     data.bdrycond.fct[1003] = [lambda x, y, z: -y**2 + 0.5 - y/2,  lambda x, y, z: 0]
+
+#----------------------------------------------------------------------
+    """
+    %%%%%%%%%%%%%%%%%%%%% Navier    %%%%%%%%%%%%%%%%%%    y = \frac{d}{2}
+    %%%%                                             %
+     %%Lambda%       below the solution      %Neumann%    y = 0  
+    %%%%                                             %
+    %%%%%%%%%%%%%%%%%%%%% Navier    %%%%%%%%%%%%%%%%%%    y = \frac{-d}{2}
+    xmin---------------------------------------------xmax
+    """
+    data.bdrycond.set("Dirichlet", [1003])
     data.bdrycond.set("Neumann", [1001])
-    # data.bdrycond.fct[1002] = lambda x, y, z: np.vstack((np.ones(x.shape[0]),np.zeros(x.shape[0])))
-    data.bdrycond.fct[1003] = [lambda x, y, z:  1, lambda x, y, z: 0]
-    #--------------------------------------------------------------------------
+    data.bdrycond.set("Navier", [1000, 1002])
+
     #navier_slip_boundary
-    data.bdrycond.fct[1002] = [lambda x, y, z:  1, lambda x, y, z: 0]
-    #data.bdrycond.fct[1000] = [lambda x, y, z:  0, lambda x, y, z: 0]
+    # data.bdrycond.fct[1000] = [lambda x, y, z:  1, lambda x, y, z: 0]
+    # data.bdrycond.fct[1002] = [lambda x, y, z:  2, lambda x, y, z: 0]
+
+    #Analytical Poiseuille's Solution
+    # $\Lambda(x,y,z) = \Lambda(y)  = \frac{C}{2\mu}[(\frac{d}{2})^{2} - y^{2}] + (a(y) - b(y))[\frac{y}{d} - \frac{1}{2}] + a(y)$
+    # With $C = constant = \frac{P_{in} - P_{out}}{|xmin-xmax|}$ and $a(y) = data.bdrycond.fct[1002], b(y)= data.bdrycond.fct[1000]$
+
+    data.bdrycond.fct[1003] = [lambda x, y, z: -y**2 + y + 2,  lambda x, y, z: 0]
     #---------------------------------------------------------------------------
     # parameters
     data.params.scal_glob["mu"] = mu
